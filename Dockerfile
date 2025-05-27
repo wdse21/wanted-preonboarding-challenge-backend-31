@@ -1,15 +1,15 @@
 # Stage 1: Build
 FROM node:22.16.0 as builder
 
-RUN apt-get update && rm -rf /var/lib/apt/lists/* 
+# RUN apt-get update && rm -rf /var/lib/apt/lists/* 
 
 USER node
 
 WORKDIR /home/app
 
-COPY package.json ./
+COPY --chown=node:node package*.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY --chown=node:node ./ ./
 
@@ -21,15 +21,12 @@ FROM node:22.16.0
 WORKDIR /home/app
 
 COPY --from=builder /home/app/node_modules ./node_modules
-
-COPY /libs ./libs
-
-COPY /src ./src
-
-COPY /dist ./dist
+COPY --from=builder /home/app/libs ./libs
+COPY --from=builder /home/app/src ./src
+COPY --from=builder /home/app/dist ./dist
 
 COPY .env.production .env.production
 
-EXPOSE 3000:3000
+EXPOSE 3000
 
-ENTRYPOINT ["node", "dist/main.js"]
+CMD ["node", "dist/main.js"]

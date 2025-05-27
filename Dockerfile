@@ -1,7 +1,7 @@
 # Stage 1: Build
 FROM node:22.16.0 as builder
 
-RUN apt-get update && npm install -y pm2 -g && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && rm -rf /var/lib/apt/lists/* 
 
 USER node
 

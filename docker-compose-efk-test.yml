@@ -1,0 +1,68 @@
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-15
+    ports:
+      - '5432:${DB_PORT}'
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: ${TZ}
+    volumes:
+      - ./db/postgres-data:/var/lib/postgresql/data
+    platform: linux/x86_64
+    restart: always
+    networks:
+      - server
+  redis:
+    image: redis:7.4.3
+    container_name: redis-7.4.3
+    ports:
+      - 6379:${REDIS_PORT}
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./db/redis/data:/data
+      - ./db/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+    labels:
+      - 'name=redis'
+      - 'mode=standalone'
+    restart: always
+    networks:
+      - server
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    environment:
+      - discovery.type=single-node
+    networks:
+      - server
+  fluentd:
+    # fluentd.conf 이상 징조
+    build:
+      context: ./
+      dockerfile: Dockerfile-efk.test
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    ports:
+      - '24224:24224'
+      - '24224:24224/udp'
+    depends_on:
+      - elasticsearch
+    networks:
+      - server
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    ports:
+      - '5601:5601'
+    environment:
+      ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
+    depends_on:
+      - fluentd
+    networks:
+      - server
+networks:
+  server:
+    driver: bridge

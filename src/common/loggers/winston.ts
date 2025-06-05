@@ -44,11 +44,11 @@ export const winstonLogger = WinstonModule.createLogger({
     // 파일 로깅 옵션 지정
     new winstonDaily(dailyOptions),
     new FluentTransport({
-      host: process.env.FLUENT_HOST,
-      port: Number(process.env.FLUENT_PORT),
-      tag: process.env.FLUENT_TAG,
-      timeout: Number(process.env.FLUENT_TIMEOUT),
-      reconnectInterval: Number(process.env.FLUENT_RECONNECTINTERVAL),
+      host: process.env.FLUENTD_HOST,
+      port: Number(process.env.FLUENTD_PORT),
+      tag: process.env.FLUENTD_TAG,
+      timeout: Number(process.env.FLUENTD_TIMEOUT),
+      reconnectInterval: Number(process.env.FLUENTD_RECONNECTINTERVAL),
     }),
   ],
   // 포멧 지정

@@ -640,14 +640,8 @@ export class ProductsRepository extends BaseRepository {
     id: string,
     updateProductCategoryDto: UpdateProductCategoryDto[],
   ) {
-    const productCategories = await this.getRepository(ProductCategory).find({
-      where: { productId: id },
-    });
-
-    if (productCategories?.length) {
-      // 기존 카테고리 데이터 삭제
-      await this.getRepository(ProductCategory).delete({ productId: id });
-    }
+    // 기존 카테고리 데이터 삭제
+    await this.getRepository(ProductCategory).delete({ productId: id });
 
     for (const data of updateProductCategoryDto) {
       const category = this.getRepository(ProductCategory).create({
@@ -711,14 +705,8 @@ export class ProductsRepository extends BaseRepository {
     id: string,
     updateProductImageDto: UpdateProductImageDto[],
   ) {
-    const productImage = await this.getRepository(ProductImage).find({
-      where: { productId: id },
-    });
-
-    if (productImage?.length) {
-      // 기존 상품 이미지 삭제
-      await this.getRepository(ProductImage).delete({ productId: id });
-    }
+    // 기존 상품 이미지 삭제
+    await this.getRepository(ProductImage).delete({ productId: id });
 
     for (const data of updateProductImageDto) {
       const image = this.getRepository(ProductImage).create({
@@ -735,14 +723,8 @@ export class ProductsRepository extends BaseRepository {
     id: string,
     updateProductTagDto: UpdateProductTagDto[],
   ) {
-    const productTag = await this.getRepository(ProductTag).find({
-      where: { productId: id },
-    });
-
-    if (productTag?.length) {
-      // 기존 상품 태그 정보 삭제
-      await this.getRepository(ProductTag).delete({ productId: id });
-    }
+    // 기존 상품 태그 정보 삭제
+    await this.getRepository(ProductTag).delete({ productId: id });
 
     for (const data of updateProductTagDto) {
       const tag = this.getRepository(ProductTag).create({

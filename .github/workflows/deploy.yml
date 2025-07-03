@@ -1,0 +1,72 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x', '22.x']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm ci
+      - name: npm run lint
+        run: npm run lint
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: ['18.x', '20.x', '22.x']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm ci
+      - name: npm build
+        run: npm run build --if-present
+      - name: Run tests
+        run: npm test
+
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '22'
+
+  #     - name: Install dependencies
+  #       run: npm install
+
+  #     - name: Deploy to server
+  #       env:
+  #         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         SERVER: ${{ secrets.SERVER }}
+  #         USER: ${{ secrets.USER }}
+  #       run: |
+  #         echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  #         ssh -o StrictHostKeyChecking=no $USER@$SERVER 'bash -s' < ./deploy.sh

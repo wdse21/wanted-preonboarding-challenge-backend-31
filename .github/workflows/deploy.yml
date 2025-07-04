@@ -3,11 +3,14 @@ name: deploy
 on:
   push:
     branches:
-      - main
+      - dev
+  pull_request:
+    branches:
+      - dev
 
 jobs:
   lint:
-    name: Lint
+    name: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -22,7 +25,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm ci
-      - name: npm run lint
+      - name: Run lint
         run: npm run lint
 
   test:
@@ -60,33 +63,37 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      # 캐쉬화 필요
+      # - name: Cache dependencies
+      #   id: cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: backend/server/node_modules
+      #     key: |
+      #       ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('backend/server/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('backend/server/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
-      - name: Build
-        run: npm run build
+      - name: Run build
+        run: npm run build --if-present
 
-#   deploy:
-#     needs: build
-#     runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main'
+  deploy:
+    name: deploy
+    needs: ['lint', 'test', 'build']
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to prod
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          port: ${{ secrets.AWS_PORT }}
+          script: |
+            whoami
 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v2
-
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '22'
-
-  #     - name: Install dependencies
-  #       run: npm install
-
-  #     - name: Deploy to server
-  #       env:
-  #         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  #         SERVER: ${{ secrets.SERVER }}
-  #         USER: ${{ secrets.USER }}
-  #       run: |
-  #         echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-  #         ssh -o StrictHostKeyChecking=no $USER@$SERVER 'bash -s' < ./deploy.sh
+            mkdir /home/ubuntu/test
+            cd /home/ubuntu/test
+            git clone https://github.com/wdse21/wanted-preonboarding-challenge-backend-31.git .
+            git pull origin main

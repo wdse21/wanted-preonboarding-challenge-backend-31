@@ -23,6 +23,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      # 윈도우 경로 문제
+      - name: Get npm cache directory
+        id: npm-cache
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: |
+            cache-npm-ubuntu-latest-${{ hashFiles('**/package-lock.json') }}
+            cache-npm-windows-latest-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cache-npm-ubuntu-latest-
+            cache-npm-windows-latest-
       - name: Install dependencies
         run: npm ci
       - name: Run lint
@@ -43,6 +59,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Get npm cache directory
+        id: npm-cache
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: |
+            cache-npm-ubuntu-latest-${{ hashFiles('**/package-lock.json') }}
+            cache-npm-windows-latest-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cache-npm-ubuntu-latest-
+            cache-npm-windows-latest-
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -63,37 +94,65 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      # 캐쉬화 필요
-      # - name: Cache dependencies
-      #   id: cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: backend/server/node_modules
-      #     key: |
-      #       ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('backend/server/package-lock.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('backend/server/package-lock.json') }}
+      - name: Get npm cache directory
+        id: npm-cache
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: |
+            cache-npm-ubuntu-latest-${{ hashFiles('**/package-lock.json') }}
+            cache-npm-windows-latest-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cache-npm-ubuntu-latest-
+            cache-npm-windows-latest-
       - name: Install dependencies
         run: npm ci
       - name: Run build
         run: npm run build --if-present
 
-  deploy:
+  deploy: 
     name: deploy
-    needs: ['lint', 'test', 'build']
+    needs: ["lint", "test", "build"]
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to prod
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ${{ secrets.AWS_USER }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          port: ${{ secrets.AWS_PORT }}
-          script: |
-            whoami
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # - name: Deploy to prod
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.AWS_HOST }}
+      #     username: ${{ secrets.AWS_USERNAME }}
+      #     key: ${{ secrets.AWS_SCRET_KEY }}
+      #     port: ${{ secrets.AWS_SCRET_PORT }}
+      #     script: |
+      #       whoami
 
-            mkdir /home/ubuntu/test
-            cd /home/ubuntu/test
-            git clone https://github.com/wdse21/wanted-preonboarding-challenge-backend-31.git .
-            git pull origin main
+      #       mkdir /home/ubuntu/test
+      #       cd /home/ubuntu/test
+      #       git clone https://github.com/dsad233/test_ci_cd.git .
+      #       git pull origin dev
+
+      # 1. EC2 docker 설치
+      # 2. ECS 활용
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: wanted1
+          IMAGE_TAG: prod
+        run: |
+          docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG

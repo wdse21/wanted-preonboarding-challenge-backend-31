@@ -1,12 +1,14 @@
 name: deploy
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - dev
+#   pull_request:
+#     branches:
+#       - dev
+env: 
+  ECS_CONTAINER_TASK_NAME: ${{ secrets.AWS_ECS_CONTAINER_TASK_NAME }}
 
 jobs:
   lint:
@@ -23,7 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      # 윈도우 경로 문제
       - name: Get npm cache directory
         id: npm-cache
         shell: bash
@@ -121,23 +122,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      # - name: Deploy to prod
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.AWS_HOST }}
-      #     username: ${{ secrets.AWS_USERNAME }}
-      #     key: ${{ secrets.AWS_SCRET_KEY }}
-      #     port: ${{ secrets.AWS_SCRET_PORT }}
-      #     script: |
-      #       whoami
-
-      #       mkdir /home/ubuntu/test
-      #       cd /home/ubuntu/test
-      #       git clone https://github.com/dsad233/test_ci_cd.git .
-      #       git pull origin dev
-
-      # 1. EC2 docker 설치
-      # 2. ECS 활용
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -149,10 +133,32 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       
-      - name: Build, tag, and push docker image to Amazon ECR
+      - name: Pull docker image to Amazon ECR
+        id: pull-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: wanted1
+          REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
           IMAGE_TAG: prod
         run: |
-          docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      - name: Retrieve most recent ECS task definition JSON file
+        id: retrieve-task-def
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_CONTAINER_TASK_NAME }} --query taskDefinition > task-definition.json
+          cat task-definition.json
+          echo "task-def-file=task-definition.json"
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
+          image: ${{ steps.pull-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ secrets.AWS_ECS_CONTAINER_SERVICE }}
+          cluster: ${{ secrets.AWS_ECS_CONTAINER_CLUSTER }}
+          wait-for-service-stability: true

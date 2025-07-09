@@ -1,12 +1,12 @@
 name: deploy
 
-# on:
-#   push:
-#     branches:
-#       - dev
-#   pull_request:
-#     branches:
-#       - dev
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 env: 
   ECS_CONTAINER_TASK_NAME: ${{ secrets.AWS_ECS_CONTAINER_TASK_NAME }}
 
@@ -128,17 +128,16 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-      
       - name: Pull docker image to Amazon ECR
         id: pull-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
-          IMAGE_TAG: prod
+          IMAGE_TAG: postgres
+        # AWS ECR에 업로드 되어 있는 해당 이미지로 교체
         run: |
           echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       - name: Retrieve most recent ECS task definition JSON file
@@ -146,7 +145,7 @@ jobs:
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_CONTAINER_TASK_NAME }} --query taskDefinition > task-definition.json
           cat task-definition.json
-          echo "task-def-file=task-definition.json"
+          echo "task-def-file=task-definition.json" >> $GITHUB_OUTPUT
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -162,3 +161,6 @@ jobs:
           service: ${{ secrets.AWS_ECS_CONTAINER_SERVICE }}
           cluster: ${{ secrets.AWS_ECS_CONTAINER_CLUSTER }}
           wait-for-service-stability: true
+
+
+# AWS ECS Fargate (awsvpc)가 컨테이너 간의 통신이 유효하도록 변경하여야함

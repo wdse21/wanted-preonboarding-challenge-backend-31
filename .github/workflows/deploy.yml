@@ -136,7 +136,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
-          IMAGE_TAG: postgres
+          IMAGE_TAG: prod
         # AWS ECR에 업로드 되어 있는 해당 이미지로 교체
         run: |
           echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -153,7 +153,6 @@ jobs:
           task-definition: task-definition.json
           container-name: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
           image: ${{ steps.pull-image.outputs.image }}
-
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
@@ -161,6 +160,3 @@ jobs:
           service: ${{ secrets.AWS_ECS_CONTAINER_SERVICE }}
           cluster: ${{ secrets.AWS_ECS_CONTAINER_CLUSTER }}
           wait-for-service-stability: true
-
-
-# AWS ECS Fargate (awsvpc)가 컨테이너 간의 통신이 유효하도록 변경하여야함

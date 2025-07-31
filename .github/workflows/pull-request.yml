@@ -1,14 +1,9 @@
-name: build
+name: pull_request_test
 
 on:
-  push:
+  pull_request:
     branches:
-      - main
-  # pull_request:
-  #   branches:
-  #       - main
-  #   types:
-  #     - closed
+        - main
 
 permissions:
   contents: read
@@ -111,16 +106,3 @@ jobs:
         run: npm ci
       - name: Run build
         run: npm run build --if-present
-
-  deploy:
-    needs: ['lint', 'test', 'build']
-    uses: './.github/workflows/deploy.yml'
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
-      AWS_ECS_CONTAINER_TASK_NAME: ${{ secrets.AWS_ECS_CONTAINER_TASK_NAME }}
-      AWS_ECS_CONTAINER_NAME: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
-      AWS_ECS_CONTAINER_SERVICE: ${{ secrets.AWS_ECS_CONTAINER_SERVICE }}
-      AWS_ECS_CONTAINER_CLUSTER: ${{ secrets.AWS_ECS_CONTAINER_CLUSTER }}

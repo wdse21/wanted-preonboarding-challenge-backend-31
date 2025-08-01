@@ -28,20 +28,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Get npm cache directory
-        id: npm-cache
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
         id: cache
         uses: actions/cache@v3
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
+          path: '**/node_modules'
           key: |
-            cache-npm-${{ hashFiles('**/package-lock.json') }}
+            ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cache-npm-
+            ${{ runner.os }}-node-
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Run lint
         run: npm run lint
@@ -69,12 +66,13 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
+          path: '**/node_modules'
           key: |
-            cache-npm-${{ hashFiles('**/package-lock.json') }}
+            ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cache-npm-
+            ${{ runner.os }}-node-
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Run tests
         run: npm test
@@ -102,12 +100,13 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
+          path: '**/node_modules'
           key: |
-            cache-npm-${{ hashFiles('**/package-lock.json') }}
+            ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cache-npm-
+            ${{ runner.os }}-node-
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Run build
         run: npm run build --if-present

@@ -16,9 +16,9 @@ on:
 
 jobs:
   lint:
+    if: ${{ inputs.key == vars.TEST_KEY }}
     name: lint
     runs-on: ${{ matrix.os }}
-    if: ${{ inputs.key == vars.TEST_KEY }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]

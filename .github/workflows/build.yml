@@ -3,7 +3,7 @@ name: build
 on:
   push:
     branches:
-      - main
+      - dev
   # pull_request:
   #   branches:
   #       - main
@@ -128,3 +128,4 @@ jobs:
       AWS_ECS_CONTAINER_NAME: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
       AWS_ECS_CONTAINER_SERVICE: ${{ secrets.AWS_ECS_CONTAINER_SERVICE }}
       AWS_ECS_CONTAINER_CLUSTER: ${{ secrets.AWS_ECS_CONTAINER_CLUSTER }}
+

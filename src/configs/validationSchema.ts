@@ -4,6 +4,7 @@ export const ValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('production', 'development', 'local', 'test', 'provision')
     .default('local'),
+  POOL_SIZE: Joi.number().required(),
   TZ: Joi.string().required(),
   PORT: Joi.number().port().default(3000),
   // 디비 설정
@@ -14,8 +15,13 @@ export const ValidationSchema = Joi.object({
   DB_PASS: Joi.string().required(),
   // Redis 설정
   REDIS_HOST: Joi.string().required(),
-  REDIS_PORT: Joi.number().required(),
-  REDIS_DB: Joi.number().required(),
+  REDIS_MASTER_HOST: Joi.string().required(),
+  REDIS_SLAVE1_HOST: Joi.string().required(),
+  REDIS_SLAVE2_HOST: Joi.string().required(),
+  REDIS_PASS: Joi.string().required(),
+  REDIS_MASTER_PORT: Joi.number().required(),
+  REDIS_SLAVE1_PORT: Joi.number().required(),
+  REDIS_SLAVE2_PORT: Joi.number().required(),
   // Jwt 설정
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_REFRESH_SECRET: Joi.string().required(),

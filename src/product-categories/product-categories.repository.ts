@@ -105,8 +105,7 @@ export class ProductCategoriesRepository extends BaseRepository {
       .where('category.id = :id', { id: id })
       .andWhere('product.status != :status', {
         status: STATUS.ProductStatus.DELETED,
-      })
-      .cache(60000);
+      });
 
     if (productCategoryRequestDto.page) {
       products.skip(productCategoryRequestDto.getSkip());

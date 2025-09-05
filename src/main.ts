@@ -43,27 +43,27 @@ async function bootstrap() {
     );
 
     // 컨텐츠 화이트 리스트
-    // app.use(
-    //   helmet({
-    //     contentSecurityPolicy: {
-    //       directives: {
-    //         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-    //         'script-src': [
-    //           "'self'",
-    //           '*.googleapis.com',
-    //           "'unsafe-inline'",
-    //           "'unsafe-eval'",
-    //         ],
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            'script-src': [
+              "'self'",
+              '*.googleapis.com',
+              "'unsafe-inline'",
+              "'unsafe-eval'",
+            ],
 
-    //         // 다음과 카카오에서 이미지 소스를 허용
-    //         'img-src': ["'self'", 'data:', '*.daumcdn.net', '*.kakaocdn.net'],
+            // 다음과 카카오에서 이미지 소스를 허용
+            'img-src': ["'self'", 'data:', '*.daumcdn.net', '*.kakaocdn.net'],
 
-    //         // 소스에 https와 http 허용
-    //         'base-uri': ['/', 'http:'],
-    //       },
-    //     },
-    //   }),
-    // );
+            // 소스에 https와 http 허용
+            'base-uri': ['/', 'http:'],
+          },
+        },
+      }),
+    );
     // 서버 소프트웨어 정보 숨김
     app.use(helmet.hidePoweredBy());
     app.use(helmet.xssFilter());

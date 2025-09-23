@@ -9,7 +9,7 @@ export class CreateUserDto {
   name: string;
 
   @IsNotEmpty({ message: 'Require Email' })
-  @IsString()
+  @IsEmail()
   @MaxLength(100, { message: 'Max Length 100' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   email: string;
@@ -19,3 +19,4 @@ export class CreateUserDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   avatarUrl?: string;
 }
+

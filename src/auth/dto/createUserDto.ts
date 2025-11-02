@@ -1,5 +1,11 @@
 import { Transform, TransformFnParams } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Require Name' })
@@ -19,4 +25,3 @@ export class CreateUserDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   avatarUrl?: string;
 }
-

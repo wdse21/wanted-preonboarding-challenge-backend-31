@@ -9,13 +9,14 @@ import {
   IsString,
 } from 'class-validator';
 import { PaginationRequestDto } from '../../common/pagination/paginationRequestDto';
+import { valueToBoolean } from '../../common/utils';
 
 // 상품 목록 조회 DTO
 export class ProductRequestDto extends PaginationRequestDto {
   // 상품 상태 필터
   @IsOptional()
   @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Transform(({ value }: TransformFnParams) => value?.trim().toUpperCase())
   sort?: string;
 
   @IsOptional()
@@ -52,14 +53,14 @@ export class ProductRequestDto extends PaginationRequestDto {
 
   // 재고 유무 필터
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }: TransformFnParams) => valueToBoolean(value?.trim()))
   @IsBoolean()
   inStock?: boolean;
 
   // 검색어
   @IsOptional()
   @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim().toLowerCase())
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   search?: string;
 }
 
@@ -68,7 +69,7 @@ export class ProductReviewRequestDto extends PaginationRequestDto {
   // 상품 상태 필터
   @IsOptional()
   @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Transform(({ value }: TransformFnParams) => value?.trim().toUpperCase())
   sort?: string;
 
   // 평점 필터 (1-5)
